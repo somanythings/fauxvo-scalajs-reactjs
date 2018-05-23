@@ -13,6 +13,7 @@ import spatutorial.shared._
 
 import scalacss.ScalaCssReact._
 
+
 object Todo {
 
   case class Props(proxy: ModelProxy[Pot[Todos]])

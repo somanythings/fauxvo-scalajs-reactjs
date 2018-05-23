@@ -2,14 +2,25 @@ package spatutorial.client.modules
 
 import diode.data.Pot
 import diode.react._
+import diode.react.ReactPot._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import spatutorial.client.SPAMain.{Loc, TodoLoc}
+import spatutorial.client.SPAMain.{Loc, MeterReadLoc, TodoLoc}
 import spatutorial.client.components._
+import spatutorial.client.services.MeterHistory
 
 import scala.util.Random
 import scala.language.existentials
+import diode.react.ReactPot._
+import diode.react._
+import diode.data.Pot
+import japgolly.scalajs.react._
+import japgolly.scalajs.react.vdom.html_<^._
+import spatutorial.client.components.Bootstrap._
+import spatutorial.client.services.UpdateMotd
+
+
 
 object Dashboard {
 
@@ -35,10 +46,8 @@ object Dashboard {
       <.div(
         // header, MessageOfTheDay and chart components
         <.h2("Dashboard"),
-        state.motdWrapper(Motd(_)),
-        Chart(cp),
-        // create a link to the To Do view
-        <.div(props.router.link(TodoLoc)("Check your todos!"))
+        <.div(props.router.link(MeterReadLoc)("Submit your meter read so we can forget it")),
+        state.motdWrapper(Motd(_))
       )
     }
     .build

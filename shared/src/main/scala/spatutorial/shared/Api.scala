@@ -1,6 +1,6 @@
 package spatutorial.shared
 
-trait Api {
+trait Api extends OvoApi {
   // message of the day
   def welcomeMsg(name: String): String
 
@@ -12,4 +12,10 @@ trait Api {
 
   // delete a Todo
   def deleteTodo(itemId: String): Seq[TodoItem]
+}
+
+
+trait OvoApi {
+  def saveMeterRead(v: Int): String
+  def getMeterHistory(): Seq[Int]
 }

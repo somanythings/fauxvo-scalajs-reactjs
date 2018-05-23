@@ -1,19 +1,22 @@
 package services
 
-import java.util.{UUID, Date}
+import java.util.{Date, UUID}
 
 import spatutorial.shared._
 
-class ApiService extends Api {
+class ApiService extends Api with OvoApi {
   var todos = Seq(
-    TodoItem("41424344-4546-4748-494a-4b4c4d4e4f50", 0x61626364, "Wear shirt that says “Life”. Hand out lemons on street corner.", TodoLow, completed = false),
-    TodoItem("2", 0x61626364, "Make vanilla pudding. Put in mayo jar. Eat in public.", TodoNormal, completed = false),
-    TodoItem("3", 0x61626364, "Walk away slowly from an explosion without looking back.", TodoHigh, completed = false),
-    TodoItem("4", 0x61626364, "Sneeze in front of the pope. Get blessed.", TodoNormal, completed = true)
+    TodoItem("41424344-4546-4748-494a-4b4c4d4e4f50", 0x61626364, "Come up with a trite example to demonstrate scalajs fullstack", TodoLow, completed = true),
+    TodoItem("2", 0x61626364, "Show fauxvo to ovo", TodoNormal, completed = false),
+    TodoItem("3", 0x61626364, "Questions?", TodoNormal, completed = false),
+    TodoItem("4", 0x61626364, "Drink", TodoLow, completed = false)
   )
 
+  var meterRead: Int = 0
+  var meterReads: Seq[Int] = Seq(23)
+
   override def welcomeMsg(name: String): String =
-    s"Welcome to SPA, $name! Time is now ${new Date}"
+    s"Welcome to Fauxvo, $name! Time is now ${new Date}. Please submit your reading!"
 
   override def getAllTodos(): Seq[TodoItem] = {
     // provide some fake Todos
@@ -48,4 +51,13 @@ class ApiService extends Api {
     todos = todos.filterNot(_.id == itemId)
     todos
   }
+
+  override def getLastMeterRead(): Int = meterRead
+
+  override def saveMeterRead(v: Int): String = {
+    (meterReads = (meterReads :+ v))
+    "Done"
+  }
+
+  override def getMeterHistory(): Seq[Int] = meterReads
 }

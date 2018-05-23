@@ -5,8 +5,9 @@ import diode._
 import diode.data._
 import diode.util._
 import diode.react.ReactConnector
-import spatutorial.shared.{TodoItem, Api}
+import spatutorial.shared.{Api, OvoApi, TodoItem}
 import boopickle.Default._
+
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
 // Actions
@@ -22,8 +23,20 @@ case class UpdateMotd(potResult: Pot[String] = Empty) extends PotAction[String, 
   override def next(value: Pot[String]) = UpdateMotd(value)
 }
 
+
+case object GetLastMeterRead extends Action
+case class UpdateLastMeterRead(v: Int) extends Action
+case object GetMeterHistory extends Action
+case class UpdateMeterHistory(history: Seq[Int]) extends Action
+case class SaveResult(payload: String) extends Action
+
+case class SubmitMeterReading(newReading: Int) extends Action
+
+case class MeterHistory(history: Seq[Int])
 // The base model of our application
-case class RootModel(todos: Pot[Todos], motd: Pot[String])
+case class RootModel( history: Pot[MeterHistory], todos: Pot[Todos], motd: Pot[String]) {
+  def lastMeterReadGas: Pot[Option[Int]] = history.map(_.history.lastOption)
+}
 
 case class Todos(items: Seq[TodoItem]) {
   def updated(newItem: TodoItem) = {
@@ -60,6 +73,21 @@ class TodoHandler[M](modelRW: ModelRW[M, Pot[Todos]]) extends ActionHandler(mode
   }
 }
 
+
+class FauxVoHistoryHandler[M](modelRW: ModelRW[M, Pot[MeterHistory]]) extends ActionHandler(modelRW) {
+  override protected def handle: PartialFunction[Any, ActionResult[M]] = {
+    case GetMeterHistory =>
+      println(s"getting history")
+      effectOnly(Effect(AjaxClient[Api].getMeterHistory().call().map(UpdateMeterHistory)))
+    case SubmitMeterReading(value) =>
+      println(s"submitting $value")
+      effectOnly(Effect(AjaxClient[Api].saveMeterRead(value).call().map(SaveResult(_))))
+    case UpdateMeterHistory(history) =>
+      println(s"setting history")
+      updated(Ready(MeterHistory(history)))
+  }
+}
+
 /**
   * Handles actions related to the Motd
   *
@@ -78,10 +106,12 @@ class MotdHandler[M](modelRW: ModelRW[M, Pot[String]]) extends ActionHandler(mod
 // Application circuit
 object SPACircuit extends Circuit[RootModel] with ReactConnector[RootModel] {
   // initial application model
-  override protected def initialModel = RootModel(Empty, Empty)
+  override protected def initialModel = RootModel(Empty, Empty, Empty)
   // combine all handlers into one
   override protected val actionHandler = composeHandlers(
     new TodoHandler(zoomRW(_.todos)((m, v) => m.copy(todos = v))),
-    new MotdHandler(zoomRW(_.motd)((m, v) => m.copy(motd = v)))
+    new MotdHandler(zoomRW(_.motd)((m, v) => m.copy(motd = v))),
+    new FauxVoHistoryHandler(zoomRW(_.history)((m, v) => m.copy(history = v)))
   )
+
 }
